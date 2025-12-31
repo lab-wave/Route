@@ -21,12 +21,13 @@ namespace lf {
         virtual pGraph graph() const = 0;
 
         virtual bool graph(const pGraph& g, pErrors err = pErrors()) = 0;
-        virtual pAgent createAgent(const CPropertyMap& m_props) = 0;
+        virtual pAgent createAgent(const CPropertyMap& m_props, pErrors err = pErrors()) = 0;
         virtual std::size_t agentsNum() const = 0;
-        virtual bool simulateTimeMove(TTime& endTime) = 0;
+        virtual bool simulateTimeMove(TTime& t) = 0;
     };
 
     typedef std::shared_ptr<ISimulator> pSimulator;
+    typedef std::shared_ptr<ISimulator> pModel;
 
     class CSimulator : public ISimulator {
     public:

@@ -283,6 +283,10 @@ bool CXmlProperty::loadDefaultAndType(const std::string& t, const std::string& d
         tp = QString::fromStdString(d);
         return true;
     }
+    else if (t.compare("class") == 0) {
+        tp = QVariant::fromValue(CClassName(QByteArray::fromStdString(d)));
+        return true;
+    }
 
     return false;
 }

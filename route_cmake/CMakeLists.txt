@@ -101,12 +101,23 @@ set_property(
 )
 
 add_subdirectory(../src/lf_common ${ABSOLUTE_BIN_DIRECTORY}/lf_common)
+add_subdirectory(../src/lf_assignment ${ABSOLUTE_BIN_DIRECTORY}/lf_assignment)
 
 set_property(
 	TARGET
 		lf_common
+		lf_assignment
 
 	PROPERTY FOLDER "lf/"
+)
+
+add_subdirectory(../src/lft_tsp ${ABSOLUTE_BIN_DIRECTORY}/lft_tsp)
+
+set_property(
+	TARGET
+		lft_tsp
+
+	PROPERTY FOLDER "lft/"
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

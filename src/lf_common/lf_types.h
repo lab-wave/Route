@@ -196,6 +196,8 @@ namespace lf {
 
         eErrorType m_type;
         QString m_msg;
+
+        CError(eErrorType t, const QString& m) : m_type(t), m_msg(m) {}
     };
 
     class CErrors : public std::vector<CError> {

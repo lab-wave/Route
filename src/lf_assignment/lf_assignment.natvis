@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<Type Name="lf::SNode">
+		<DisplayString>[Position] = {m_id} [Cost] = [{m_level}] {m_cost}</DisplayString>
+	</Type>
+</AutoVisualizer>

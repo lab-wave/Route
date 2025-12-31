@@ -81,6 +81,8 @@ namespace lf {
 
     class Graph : public lf::IGraph {
     public:
+        typedef typename std::shared_ptr<Graph> Ptr;
+
         Graph() {}
 
         virtual size_t verticesNum() const { return m_vertices.size(); }
@@ -118,20 +120,23 @@ namespace lf {
         virtual lf::pEdge createEdge(lf::Vertex::TId fromId, lf::Vertex::TId toId, const lf::pEdge& v, pErrors err = pErrors()) {
             if (fromId != Vertex::VoidId && toId != Vertex::VoidId && fromId < m_vertices.size() && toId < m_vertices.size())
                 return createEdge<Edge>(lf::Graph::vertex(fromId), lf::Graph::vertex(toId));
-            if (fromId == Vertex::VoidId || fromId >= m_vertices.size())
-                err->push_back(CError{ CError::E_ERROR, QString("Edge from vertex with id \"%1\" not found").arg(fromId) });
-            if (toId == Vertex::VoidId || toId >= m_vertices.size())
-                err->push_back(CError{ CError::E_ERROR, QString("Edge to vertex with id \"%1\" not found").arg(toId) });
+            if (err) {
+                if (fromId == Vertex::VoidId || fromId >= m_vertices.size())
+                    err->push_back(CError{ CError::E_ERROR, QString("Edge from vertex with id \"%1\" not found").arg(fromId) });
+                if (toId == Vertex::VoidId || toId >= m_vertices.size())
+                    err->push_back(CError{ CError::E_ERROR, QString("Edge to vertex with id \"%1\" not found").arg(toId) });
+            }
 
             return lf::pEdge();
         }
 
         template<class T>
-        static std::shared_ptr<T> createGraph(const lf::pGraph src, pErrors err = pErrors()) {
+        static std::shared_ptr<T> createGraph(const lf::pGraph src, pErrors ex_err = pErrors()) {
             auto result = std::make_shared<T>();
 
             std::vector<Vertex::TId> oldToNew(src->verticesNum(), Vertex::VoidId);
 
+            pErrors err = (ex_err) ? ex_err : std::make_shared<lf::CErrors>();
             for (auto& srcv : src->vertices()) {
                 if (!srcv)
                     continue;

@@ -4,7 +4,7 @@
 
 #include <random>
 
-bool lf::CAgentRandomSetter::set(const std::vector<lf::CPropertyMap>& props, const pGraph graph)
+bool lf::CAgentRandomSetter::set(const std::vector<lf::CPropertyMap>& props, const pGraph graph, lf::pErrors err)
 {
     std::seed_seq seed{ m_seed };
 
@@ -29,7 +29,7 @@ bool lf::CAgentRandomSetter::set(const std::vector<lf::CPropertyMap>& props, con
             int startPointShift = startPointDstrb(_gen);
             fixedProps[QByteArray("vertex")] = startPointShift;
             steps++;
-        } while (!m_creator(fixedProps) && steps < 100);
+        } while (!m_creator(fixedProps, err) && steps < 100);
 
         if (steps >= 100) {
             return false;

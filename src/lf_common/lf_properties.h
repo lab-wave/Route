@@ -17,10 +17,25 @@ namespace lf
     public:
         virtual ~IConstrains() {}
         virtual QVariant value(const QVariant& src, const QVariant& def) = 0;
+        virtual bool isValid(const QVariant& src) const = 0;
     };
 
     typedef std::shared_ptr<IConstrains> pConstrains;
 
+    class CClassName : protected QByteArray {
+    public:
+        //using QByteArray::QByteArray;
+        using QByteArray::operator=;
+    
+        CClassName(const QByteArray& src = QByteArray()) : QByteArray(src) {}
+
+        QByteArray toByteArray() const { return *this; }
+
+        static CClassName fromStdString(const std::string& s) { return CClassName(QByteArray::fromStdString(s)); }
+        static CClassName fromBase64(const QByteArray& base64, Base64Options options = Base64Encoding) { return CClassName(QByteArray::fromBase64(base64, options)); }
+
+        operator QVariant() const { return QVariant::fromValue(*this); }
+    };
 
     class CProperty : protected QVariant {
     public:
@@ -33,6 +48,16 @@ namespace lf
             ATTR_TYPE_BASED = 8,
             ATTR_MAPPED = 16,       // internal: mapped to some system value, i.e. coordinate or size
         };
+
+        enum Type
+        {
+            ClassUser = QMetaType::User + 100
+        };
+
+        static bool isIntType(int tp);
+        static bool isDoubleType(int tp);
+        static bool isStringType(int tp);
+        static bool isClassType(int tp);
 
         CProperty() : QVariant(), m_flags(ATTR_NONE) {}
         explicit CProperty(const QVariant& val, const QByteArray& _id = QByteArray(), const QString& _name = QString(), const uint32_t _flags = ATTR_NONE)
@@ -74,6 +99,22 @@ namespace lf
         T cast(const TValue& v, bool& ok) const { ok = false; return T(); }
 
         template<>
+        bool cast(const TValue& v, bool& ok) const {
+            QString val = v.toString().toLower();
+            if (val.compare("true") == 0) {
+                ok = true;
+                return true;
+            }
+            else if (val.compare("false") == 0) {
+                ok = true;
+                return false;
+            }
+
+            ok = false;
+            return false;
+        }
+
+        template<>
         double cast(const TValue& v, bool& ok) const { return v.toDouble(&ok); }
 
         template<>
@@ -94,6 +135,25 @@ namespace lf
         template<>
         QStringList cast(const TValue& v, bool& ok) const { ok = true; return v.toStringList(); }
 
+        template<>
+        CPropertyMap cast(const TValue& v, bool& ok) const {
+            auto h = v.toHash();
+            CPropertyMap res;
+            for (auto i = h.begin(); i != h.end(); ++i) {
+                res.insert(std::make_pair(i.key().toLatin1(), i.value()));
+            }
+            ok = true;
+            return res;
+        }
+
+        QHash<QString, TValue> toHash() const {
+            QHash<QString, TValue> res;
+            for (auto i: *this) {
+                res.insert(QString::fromLatin1(i.first), i.second);
+            }
+            return res;
+        }
+
         template<class T>
         bool queryValue(const TKey& name, T& val, pErrors err = pErrors()) const {
             bool ok = false;
@@ -103,11 +163,12 @@ namespace lf
                 if (ok) {
                     val = cv;
                 }
-                else {
+                else if (err) {
                     err->push_back(CError{ CError::E_ERROR, QString("Attribute \"%1\" cast error \"%2\"").arg(name).arg(v.toString()) });
                 }
             }
             else {
+                if(err)
                 err->push_back(CError{ CError::E_ERROR, QString("Attribute \"%1\" not found").arg(name) });
             }
 
@@ -144,6 +205,7 @@ namespace lf
         CIntegerConstrains(IConstrains* ptr = nullptr);
 
         QVariant value(const QVariant& src, const QVariant& def) override;
+        bool isValid(const QVariant& src) const override;
 
         TBaseInt minValue = std::numeric_limits<TBaseInt>::min();
         TBaseInt maxValue = std::numeric_limits<TBaseInt>::max();
@@ -158,6 +220,7 @@ namespace lf
         CDoubleConstrains(IConstrains* ptr = NULL);
 
         QVariant value(const QVariant& src, const QVariant& def) override;
+        bool isValid(const QVariant& src) const override;
 
         TBaseDouble minValue = std::numeric_limits<TBaseDouble>::lowest();
         TBaseDouble maxValue = std::numeric_limits<TBaseDouble>::max();
@@ -184,6 +247,7 @@ namespace lf
         const QByteArrayList& ids() const { return m_ids; }
         void append(const QString& name, const QByteArray& id);
         QVariant value(const QVariant& src, const QVariant& def) override;
+        bool isValid(const QVariant& src) const override;
     protected:
         QByteArrayList m_ids;
     };
@@ -195,7 +259,11 @@ namespace lf
         const QList<int>& ids() const { return m_ids; }
         void append(const QString& name, int id);
         QVariant value(const QVariant& src, const QVariant& def) override;
+        bool isValid(const QVariant& src) const override;
     protected:
         QList<int> m_ids;
     };
 }
+
+QDataStream& operator>>(QDataStream& s, lf::CClassName& p);
+QDataStream& operator<<(QDataStream& s, const lf::CClassName& p);

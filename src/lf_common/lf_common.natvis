@@ -122,6 +122,36 @@
 		</Expand>
 	</Type>
 	
+	<Type Name="QString">
+		<DisplayString>&quot;{(reinterpret_cast&lt;unsigned short*&gt;(d.ptr)),sub}&quot;</DisplayString>
+		<StringView>(reinterpret_cast&lt;unsigned short*&gt;(d.ptr)),sub</StringView>
+		<Expand>
+			<Item Name="[size]">d.size</Item>
+			<ArrayItems>
+				<Size>d.size</Size>
+				<ValuePointer>d.ptr</ValuePointer>
+			</ArrayItems>
+		</Expand>
+	</Type>
+
+	<Type Name="std::shared_ptr&lt;*&gt;">
+		<DisplayString Condition="_Ptr == 0">empty</DisplayString>
+		<DisplayString Condition="_Ptr != 0">{*_Ptr}</DisplayString>
+		<Expand>
+			<ExpandedItem>*_Ptr</ExpandedItem>
+			<Item Condition="_Rep != 0" Name="[control block]">*_Rep</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="std::weak_ptr&lt;*&gt;">
+		<DisplayString Condition="_Ptr == 0">empty</DisplayString>
+		<DisplayString Condition="_Ptr != 0">{*_Ptr}</DisplayString>
+		<Expand>
+			<ExpandedItem>*_Ptr</ExpandedItem>
+			<Item Condition="_Rep != 0" Name="[control block]">*_Rep</Item>
+		</Expand>
+	</Type>
+
 	<Type Name="lf::CProperty">
 		<DisplayString>[{m_id} - {m_name}] [Default] = {*(QVariant*)this,nd} </DisplayString>
 	</Type>
@@ -141,7 +171,7 @@
 	</Type>
 
 	<Type Name="lf::Vertex">
-		<DisplayString>[{m_id}] </DisplayString>
+		<DisplayString>[{m_id}]</DisplayString>
 		<Expand>
 			<Item Name="[Id]">m_id</Item>
 			<Item Name="[Input]">m_inputList</Item>
